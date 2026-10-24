@@ -43,6 +43,21 @@ public class UygulamaDbContext : IdentityDbContext<Kullanici>
             .WithMany(h => h.Islemler)
             .HasForeignKey(i => i.HesapId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        OrnekVerileriEkle(builder);
+    }
+
+    private static void OrnekVerileriEkle(ModelBuilder builder)
+    {
+        var veriler = OrnekVeriler.Olustur();
+
+        builder.Entity<IdentityRole>().HasData(veriler.Roller);
+        builder.Entity<Kullanici>().HasData(veriler.Kullanicilar);
+        builder.Entity<IdentityUserRole<string>>().HasData(veriler.KullaniciRolleri);
+        builder.Entity<Hesap>().HasData(veriler.Hesaplar);
+        builder.Entity<Islem>().HasData(veriler.Islemler);
+        builder.Entity<Kart>().HasData(veriler.Kartlar);
+        builder.Entity<KayitliAlici>().HasData(veriler.KayitliAlicilar);
     }
 
     private static void IdentityTablolariniTurkcelestir(ModelBuilder builder)
