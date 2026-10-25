@@ -1,8 +1,43 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Ana Sayfa";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<h1 class="mb-1">Sesli Bankacılık Asistanı</h1>
+<p class="text-muted mb-4">Bankacılık işlemlerinizi menülerle uğraşmadan, konuşarak yapın.</p>
+
+<div class="row">
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <h5><i class="fas fa-wallet me-2"></i>Hesaplarım</h5>
+                <p class="mb-0">Hesaplarınızı, bakiyelerinizi ve hesap hareketlerinizi görüntüleyin.</p>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-white stretched-link" asp-controller="Hesap" asp-action="Index">Hesaplara git</a>
+                <i class="fas fa-angle-right"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <h5><i class="fas fa-comments me-2"></i>Sesli Asistan</h5>
+                <p class="mb-0">"Bakiyem ne kadar?" ya da "Anneme 500 TL gönder" deyin, asistan halletsin.</p>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-white stretched-link" asp-controller="Sohbet" asp-action="Index">Asistanı aç</a>
+                <i class="fas fa-angle-right"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-md-12 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5><i class="fas fa-shield-halved me-2"></i>Güvenli işlem</h5>
+                <p class="mb-0">Her para transferi öncesinde onayınız alınır; bakiye ve günlük limit kontrolleri sunucu tarafında yapılır.</p>
+            </div>
+        </div>
+    </div>
 </div>
