@@ -1,0 +1,51 @@
+﻿/* Sohbet sayfası */
+.sohbet-govde {
+    height: 60vh;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+}
+
+.mesaj {
+    display: flex;
+    flex-direction: column;
+    max-width: 75%;
+    margin-bottom: 1rem;
+}
+
+    .mesaj.asistan {
+        align-items: flex-start;
+    }
+
+    .mesaj.kullanici {
+        align-items: flex-end;
+        margin-left: auto;
+    }
+
+    .mesaj .balon {
+        padding: 0.6rem 0.9rem;
+        border-radius: 1rem;
+    }
+
+    .mesaj.asistan .balon {
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-bottom-left-radius: 0.25rem;
+    }
+
+    .mesaj.kullanici .balon {
+        background-color: #0d6efd;
+        color: #fff;
+        border-bottom-right-radius: 0.25rem;
+    }
+
+    .mesaj .saat {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-top: 0.2rem;
+    }
+
+.onay-kutusu {
+    background-color: #f1f3f5;
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+}
