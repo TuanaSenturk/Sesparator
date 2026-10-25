@@ -1,0 +1,43 @@
+﻿@model List<Hesap>
+@{
+    ViewData["Title"] = "Hesaplarım";
+    var toplam = Model.Sum(h => h.Bakiye);
+}
+
+<h1 class="mb-1">Hesaplarım</h1>
+<p class="text-muted mb-4">Toplam bakiye: <strong>@Bicim.Para(toplam)</strong></p>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Henüz hesabınız bulunmuyor.</div>
+}
+
+<div class="row">
+    @foreach (var h in Model)
+    {
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="mb-0">
+                            <i class="fas fa-wallet me-2 text-primary"></i>@Bicim.HesapTuruAdi(h.HesapTuru) Hesap
+                        </h5>
+                        <span class="badge bg-light text-dark border">@h.ParaBirimi</span>
+                    </div>
+
+                    <div class="small text-muted">IBAN</div>
+                    <div class="font-monospace mb-3">@Bicim.Iban(h.Iban)</div>
+
+                    <div class="small text-muted">Bakiye</div>
+                    <div class="fs-4 fw-bold">@Bicim.Para(h.Bakiye, h.ParaBirimi)</div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a class="btn btn-sm btn-outline-primary" asp-action="Detay" asp-route-id="@h.Id">
+                        Hesap hareketleri <i class="fas fa-angle-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+    
+</div>

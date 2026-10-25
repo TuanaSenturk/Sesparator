@@ -1,0 +1,70 @@
+﻿@model Hesap
+@{
+    ViewData["Title"] = "Hesap Hareketleri";
+}
+
+<a asp-action="Index" class="btn btn-link px-0 mb-2">
+    <i class="fas fa-arrow-left me-1"></i> Hesaplarım
+</a>
+
+<h1 class="mb-4">@Bicim.HesapTuruAdi(Model.HesapTuru) Hesap</h1>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8 mb-3 mb-md-0">
+                <div class="small text-muted">IBAN</div>
+                <div class="font-monospace fs-5">@Bicim.Iban(Model.Iban)</div>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="small text-muted">Bakiye</div>
+                <div class="fs-3 fw-bold">@Bicim.Para(Model.Bakiye, Model.ParaBirimi)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-list me-1"></i> Hesap Hareketleri
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Islemler.Any())
+        {
+            <p class="text-muted p-3 mb-0">Bu hesapta henüz işlem yok.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Tarih</th>
+                            <th>Açıklama</th>
+                            <th>İşlem Türü</th>
+                            <th>Kanal</th>
+                            <th>Durum</th>
+                            <th class="text-end pe-3">Tutar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var i in Model.Islemler)
+                        {
+                            var gelen = i.IslemTuru == IslemTuru.GelenTransfer;
+                            <tr>
+                                <td class="ps-3 text-nowrap">@i.Tarih.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td>@i.Aciklama</td>
+                                <td>@Bicim.IslemTuruAdi(i.IslemTuru)</td>
+                                <td>@Bicim.KanalAdi(i.Kanal)</td>
+                                <td>@Bicim.DurumAdi(i.Durum)</td>
+                                <td class="text-end pe-3 fw-semibold text-nowrap @(gelen ? "text-success" : "text-danger")">
+                                    @(gelen ? "+" : "-")@Bicim.Para(i.Tutar, Model.ParaBirimi)
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
