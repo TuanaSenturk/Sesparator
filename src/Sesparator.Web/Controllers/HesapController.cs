@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sesparator.Web.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Sesparator.Web.Controllers
 {
+    [Authorize(Roles = "Musteri")]
+
     public class HesapController : Controller
     {
         // Giriş sistemi (2. hafta) gelene kadar sabit örnek müşteri: Ayşe Yılmaz

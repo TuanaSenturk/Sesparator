@@ -1,5 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Sesparator.Web.Data;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+using Sesparator.Web.Models;
+using Sesparator.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +14,50 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<UygulamaDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("VarsayilanBaglanti")));
+
+builder.Services.AddIdentity<Kullanici, IdentityRole>(o =>
+    {
+        o.Password.RequiredLength = 8;
+        o.User.RequireUniqueEmail = true;
+        o.Lockout.MaxFailedAccessAttempts = 5;
+    })
+    .AddEntityFrameworkStores<UygulamaDbContext>()
+    .AddDefaultTokenProviders();
+
+// Web: çerez (cookie) ile oturum
+builder.Services.ConfigureApplicationCookie(o =>
+{
+    o.LoginPath = "/Oturum/Giris";
+    o.LogoutPath = "/Oturum/Cikis";
+    o.AccessDeniedPath = "/Oturum/ErisimEngellendi";
+    o.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+    o.SlidingExpiration = true;
+});
+
+// Mobil: JWT
+var jwtAyar = builder.Configuration.GetSection("Jwt");
+var jwtAnahtar = jwtAyar["Anahtar"]
+    ?? throw new InvalidOperationException("Jwt:Anahtar ayarlanmamış (Manage User Secrets).");
+
+builder.Services.AddAuthentication()   // varsayılan şema Identity çerezi olarak kalır
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, o =>
+    {
+        o.MapInboundClaims = false;
+        o.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtAyar["Yayinci"],
+            ValidateAudience = true,
+            ValidAudience = jwtAyar["Hedef"],
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtAnahtar)),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(1)
+        };
+    });
+
+builder.Services.AddScoped<JwtServisi>();
+
 
 var app = builder.Build();
 
@@ -21,6 +71,8 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+app.UseAuthentication();    
 
 app.UseAuthorization();
 
