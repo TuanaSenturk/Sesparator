@@ -1,0 +1,42 @@
+@model GirisViewModel
+@{
+    ViewData["Title"] = "Giriş";
+    Layout = "_GirisLayout";
+}
+
+<div class="card shadow-lg border-0 rounded-lg mt-5">
+    <div class="card-header">
+        <h3 class="text-center font-weight-light my-4">
+            <i class="fas fa-microphone me-2"></i>Sesparator
+        </h3>
+    </div>
+    <div class="card-body">
+        <form asp-action="Giris" method="post">
+            <input type="hidden" asp-for="ReturnUrl" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Eposta" class="form-control" placeholder="ornek@sesparator.test" autocomplete="username" />
+                <label asp-for="Eposta"></label>
+                <span asp-validation-for="Eposta" class="text-danger small"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Sifre" class="form-control" placeholder="Şifre" autocomplete="current-password" />
+                <label asp-for="Sifre"></label>
+                <span asp-validation-for="Sifre" class="text-danger small"></span>
+            </div>
+
+            <div class="form-check mb-3">
+                <input asp-for="BeniHatirla" class="form-check-input" />
+                <label asp-for="BeniHatirla" class="form-check-label"></label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Giriş Yap</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

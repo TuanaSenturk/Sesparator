@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Sesparator</title>
 
+    
+
     <!-- SB Admin teması (Bootstrap 5 dahil) -->
     <link rel="stylesheet" href="~/css/sb-admin.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/sesparator.css" asp-append-version="true" />
@@ -25,6 +27,34 @@
         <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!">
             <i class="fas fa-bars"></i>
         </button>
+        <ul class="navbar-nav ms-auto me-3 me-lg-4">
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" id="kullaniciMenu" href="#" role="button"
+               data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-user fa-fw"></i> @User.Identity.Name
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="kullaniciMenu">
+                <li>
+                    <form asp-controller="Oturum" asp-action="Cikis" method="post">
+                        <button type="submit" class="dropdown-item">
+                            <i class="fas fa-right-from-bracket me-2"></i>Çıkış Yap
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Oturum" asp-action="Giris">
+                <i class="fas fa-right-to-bracket me-1"></i>Giriş Yap
+            </a>
+        </li>
+    }
+</ul>
     </nav>
 
     <div id="layoutSidenav">
@@ -39,15 +69,18 @@
                             Ana Sayfa
                         </a>
 
-                        <div class="sb-sidenav-menu-heading">Bankacılık</div>
-                        <a class="nav-link @(aktif == "Hesap" ? "active" : "")" asp-controller="Hesap" asp-action="Index">
-                            <div class="sb-nav-link-icon"><i class="fas fa-wallet"></i></div>
-                            Hesaplarım
-                        </a>
-                        <a class="nav-link @(aktif == "Sohbet" ? "active" : "")" asp-controller="Sohbet" asp-action="Index">
-                            <div class="sb-nav-link-icon"><i class="fas fa-comments"></i></div>
-                            Sesli Asistan
-                        </a>
+                        @if (User.IsInRole("Musteri"))
+                        {
+                            <div class="sb-sidenav-menu-heading">Bankacılık</div>
+                            <a class="nav-link @(aktif == "Hesap" ? "active" : "")" asp-controller="Hesap" asp-action="Index">
+                                <div class="sb-nav-link-icon"><i class="fas fa-wallet"></i></div>
+                                Hesaplarım
+                            </a>
+                            <a class="nav-link @(aktif == "Sohbet" ? "active" : "")" asp-controller="Sohbet" asp-action="Index">
+                                <div class="sb-nav-link-icon"><i class="fas fa-comments"></i></div>
+                                Sesli Asistan
+                            </a>
+                        }
                     </div>
                 </div>
                 <div class="sb-sidenav-footer">
