@@ -58,6 +58,9 @@ builder.Services.AddAuthentication()   // varsayılan şema Identity çerezi ola
 
 builder.Services.AddScoped<JwtServisi>();
 
+// STT/TTS: Gemini (anahtar: Gemini:ApiAnahtari, Manage User Secrets)
+builder.Services.AddHttpClient<ISesServisi, GeminiSesServisi>(c => c.Timeout = TimeSpan.FromSeconds(30));
+
 
 var app = builder.Build();
 

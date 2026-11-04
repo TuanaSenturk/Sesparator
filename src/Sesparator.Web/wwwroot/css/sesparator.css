@@ -44,6 +44,17 @@
         margin-top: 0.2rem;
     }
 
+/* Kayıt sırasında mikrofon butonu yanıp söner */
+.kayitta {
+    animation: kayit-nabiz 1s infinite;
+}
+
+@keyframes kayit-nabiz {
+    50% {
+        opacity: 0.5;
+    }
+}
+
 .onay-kutusu {
     background-color: #f1f3f5;
     border-radius: 0.5rem;
