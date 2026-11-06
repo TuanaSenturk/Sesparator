@@ -45,4 +45,30 @@ public class HesaplarApiController : ControllerBase
             .Select(h => new HesapDto(h.Id, h.Iban, h.HesapTuru.ToString(), h.ParaBirimi, h.Bakiye))
             .ToList();
     }
+
+    // GET: /api/hesaplar/5/islemler
+    [HttpGet("{id:int}/islemler")]
+    public async Task<ActionResult<List<IslemDto>>> Islemler(int id)
+    {
+        var kullaniciId = _kullaniciYoneticisi.GetUserId(User)!;
+
+        // Hesap yoksa da başkasınınsa da 404: başka kullanıcının hesap Id'lerinin varlığı belli olmasın
+        var hesapBenimMi = await _db.Hesaplar
+            .AnyAsync(h => h.Id == id && h.KullaniciId == kullaniciId);
+        if (!hesapBenimMi)
+            return NotFound(new { mesaj = "Hesap bulunamadı." });
+
+        var islemler = await _db.Islemler
+            .AsNoTracking()
+            .Where(i => i.HesapId == id)
+            .OrderByDescending(i => i.Tarih)   // en yeni işlem en üstte
+            .ThenByDescending(i => i.Id)       // aynı andaki işlemlerin sırası sabit kalsın
+            .ToListAsync();
+
+        // Enum'lar metin olarak gider: "GidenTransfer", "Ses", "Tamamlandi"
+        return islemler
+            .Select(i => new IslemDto(i.Id, i.IslemTuru.ToString(), i.Tutar, i.AliciIban,
+                i.Aciklama, i.Tarih, i.Kanal.ToString(), i.Durum.ToString()))
+            .ToList();
+    }
 }
