@@ -1,0 +1,28 @@
+@model KayitliAlici
+@{
+    ViewData["Title"] = "Alıcıyı Sil";
+}
+
+<h1 class="mb-4">Alıcıyı Sil</h1>
+
+<div class="row">
+    <div class="col-xl-6 col-lg-8">
+        <div class="card border-danger">
+            <div class="card-body">
+                <p class="mb-3">Bu alıcıyı silmek istediğinize emin misiniz?</p>
+                <dl class="row mb-4">
+                    <dt class="col-sm-4">Takma ad</dt>
+                    <dd class="col-sm-8">@Model.TakmaAd</dd>
+                    <dt class="col-sm-4">Ad soyad</dt>
+                    <dd class="col-sm-8">@Model.AdSoyad</dd>
+                    <dt class="col-sm-4">IBAN</dt>
+                    <dd class="col-sm-8 font-monospace">@Bicim.Iban(Model.Iban)</dd>
+                </dl>
+                <form asp-action="Sil" asp-route-id="@Model.Id" method="post" class="d-flex gap-2">
+                    <button type="submit" class="btn btn-danger"><i class="fas fa-trash me-1"></i>Sil</button>
+                    <a class="btn btn-outline-secondary" asp-action="Index">Vazgeç</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

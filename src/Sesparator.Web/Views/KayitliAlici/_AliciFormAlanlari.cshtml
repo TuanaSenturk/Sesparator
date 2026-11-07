@@ -1,0 +1,24 @@
+@model KayitliAliciGirdisi
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+<div class="mb-3">
+    <label asp-for="TakmaAd" class="form-label"></label>
+    <input asp-for="TakmaAd" class="form-control" placeholder="ör. Annem" autocomplete="off" />
+    <div class="form-text">Sesli komutta alıcıyı bu adla söyleyeceksiniz.</div>
+    <span asp-validation-for="TakmaAd" class="text-danger small"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="AdSoyad" class="form-label"></label>
+    <input asp-for="AdSoyad" class="form-control" placeholder="ör. Ayşe Yılmaz" autocomplete="off" />
+    <span asp-validation-for="AdSoyad" class="text-danger small"></span>
+</div>
+
+<div class="mb-4">
+    <label asp-for="Iban" class="form-label"></label>
+    <input asp-for="Iban" class="form-control font-monospace" maxlength="34"
+           placeholder="TR00 0000 0000 0000 0000 0000 00" autocomplete="off" />
+    <div class="form-text">Boşluklu ya da boşluksuz yazabilirsiniz.</div>
+    <span asp-validation-for="Iban" class="text-danger small"></span>
+</div>
