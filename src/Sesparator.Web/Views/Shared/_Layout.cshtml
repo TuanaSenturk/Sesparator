@@ -76,6 +76,10 @@
                                 <div class="sb-nav-link-icon"><i class="fas fa-wallet"></i></div>
                                 Hesaplarım
                             </a>
+                            <a class="nav-link @(aktif == "KayitliAlici" ? "active" : "")" asp-controller="KayitliAlici" asp-action="Index">
+                                <div class="sb-nav-link-icon"><i class="fas fa-address-book"></i></div>
+                                Kayıtlı Alıcılar
+                            </a>
                             <a class="nav-link @(aktif == "Sohbet" ? "active" : "")" asp-controller="Sohbet" asp-action="Index">
                                 <div class="sb-nav-link-icon"><i class="fas fa-comments"></i></div>
                                 Sesli Asistan
