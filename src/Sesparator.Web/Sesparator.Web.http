@@ -1,0 +1,53 @@
+@adres = http://localhost:5231
+@sifre = Test123!
+
+# Test edilecek kullanıcı ve onun hesaplarından biri
+@kullanici = ayse.yilmaz@sesparator.test
+@hesapId = 5
+
+# "Başkası" olarak kullanılacak ikinci müşteri
+@baskasi = emre.yilmaz@sesparator.test
+
+### 1) Giriş
+# @name ben
+POST {{adres}}/api/oturum/giris
+Content-Type: application/json
+
+{ "eposta": "{{kullanici}}", "sifre": "{{sifre}}" }
+
+### 2) Hesaplarım -> hesapId'yi buradan seçin
+GET {{adres}}/api/hesaplar
+Authorization: Bearer {{ben.response.body.token}}
+
+### 3) Kendi hesabı -> 200
+GET {{adres}}/api/hesaplar/{{hesapId}}/islemler
+Authorization: Bearer {{ben.response.body.token}}
+
+### 4) Başka müşteri ile giriş
+# @name baskasi
+POST {{adres}}/api/oturum/giris
+Content-Type: application/json
+
+{ "eposta": "{{baskasi}}", "sifre": "{{sifre}}" }
+
+### 5) Başkasının hesabı -> 404
+GET {{adres}}/api/hesaplar/{{hesapId}}/islemler
+Authorization: Bearer {{baskasi.response.body.token}}
+
+### 6) Token yok -> 401
+GET {{adres}}/api/hesaplar/{{hesapId}}/islemler
+
+### 7) Olmayan hesap -> 404
+GET {{adres}}/api/hesaplar/99999/islemler
+Authorization: Bearer {{ben.response.body.token}}
+
+### 8) Yönetici ile giriş
+# @name yonetici
+POST {{adres}}/api/oturum/giris
+Content-Type: application/json
+
+{ "eposta": "yonetici@sesparator.test", "sifre": "{{sifre}}" }
+
+### 9) Yönetici -> 403
+GET {{adres}}/api/hesaplar/{{hesapId}}/islemler
+Authorization: Bearer {{yonetici.response.body.token}}
