@@ -131,10 +131,22 @@
     }
 
     async function yanitla(metin) {
-        // Geçici yanıt. 4. haftada burası Gemini'ye (asistan uç noktasına) bağlanacak.
-        const cevap = `Şunu söylediniz: "${metin}"`;
-        balonEkle(cevap, 'asistan');
-        await seslendir(cevap);
+        durumYaz('Asistan düşünüyor...');
+        const yanit = await fetch('/api/asistan/mesaj', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ metin })
+        });
+        if (oturumDustuMu(yanit)) return;
+        if (!yanit.ok) {
+            balonEkle(await hataMesaji(yanit), 'asistan');
+            return;
+    }
+
+        const cevap = await yanit.json();
+        balonEkle(cevap.mesaj, 'asistan');
+        await seslendir(cevap.mesaj);
+        // cevap.onayGerekli true ise onay/iptal akışı burada devreye girecek
     }
 
     async function seslendir(metin) {
