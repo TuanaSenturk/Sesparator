@@ -61,7 +61,10 @@ builder.Services.AddScoped<JwtServisi>();
 
 // STT/TTS: Gemini (anahtar: Gemini:ApiAnahtari, Manage User Secrets)
 builder.Services.AddHttpClient<ISesServisi, GeminiSesServisi>(c => c.Timeout = TimeSpan.FromSeconds(30));
-
+// Asistan: Gemini ile niyet çıkarma + sunucu tarafı kontroller
+builder.Services.AddHttpClient<INiyetServisi, GeminiNiyetServisi>(c => c.Timeout = TimeSpan.FromSeconds(15));
+builder.Services.AddScoped<BankaIslemServisi>();
+builder.Services.AddScoped<AsistanServisi>();
 builder.Services.AddScoped<KayitliAliciDogrulayici>(); /* Dependency injection’a “controller bu servisi istediğinde her 
 istek için bir tane oluştur” der. Bu satır olmadan controller’ın constructor’ı servisi alamaz.
 */

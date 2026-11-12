@@ -34,6 +34,7 @@ public class HesaplarApiController : ControllerBase
         // Kullanıcı Id'si token'ın içinden okunur ([Authorize] sayesinde boş olamaz)
         var kullaniciId = _kullaniciYoneticisi.GetUserId(User)!;
 
+        
         var hesaplar = await _db.Hesaplar
             .AsNoTracking()   // sadece okuma, değişiklik takibi gereksiz
             .Where(h => h.KullaniciId == kullaniciId)
