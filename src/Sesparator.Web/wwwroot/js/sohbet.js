@@ -15,6 +15,9 @@
     let parcalar = [];
     let zamanlayici = null;
     let mesgul = false;
+    let onayKutusu = null;
+    let calanSes = null;      // şu an çalan asistan sesi (Audio)
+    let sesSirasi = 0;        // her yeni seslendirmede ya da durdurmada artar
 
     function balonEkle(metin, kimden) {
         const mesaj = document.createElement('div');
@@ -63,6 +66,7 @@
     }
 
     async function kaydiBaslat() {
+        sesiDurdur();   // asistanın sesi kayda girmesin
         if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
             balonEkle('Tarayıcınız ses kaydını desteklemiyor. Mesajınızı yazarak gönderebilirsiniz.', 'asistan');
             return;
@@ -131,6 +135,7 @@
     }
 
     async function yanitla(metin) {
+        onayDugmeleriniKaldir();
         durumYaz('Asistan düşünüyor...');
         const yanit = await fetch('/api/asistan/mesaj', {
             method: 'POST',
@@ -145,30 +150,84 @@
 
         const cevap = await yanit.json();
         balonEkle(cevap.mesaj, 'asistan');
+        if (cevap.onayGerekli) onayDugmeleriEkle();
         await seslendir(cevap.mesaj);
-        // cevap.onayGerekli true ise onay/iptal akışı burada devreye girecek
+    }
+
+    // Onay bekleyen transfer için Onayla / Vazgeç düğmeleri.
+    // Düğmeler "evet" / "vazgeç" metnini gönderir; sunucu sesle ya da yazıyla verilen cevapla aynı şekilde işler.
+    function onayDugmeleriEkle() {
+        onayDugmeleriniKaldir();
+
+        onayKutusu = document.createElement('div');
+        onayKutusu.className = 'onay-kutusu d-inline-flex gap-2 mb-3';
+        onayKutusu.append(
+            onayDugmesi('Onayla', 'btn-success', 'fa-check', 'evet'),
+            onayDugmesi('Vazgeç', 'btn-outline-secondary', 'fa-times', 'vazgeç')
+        );
+        govde.append(onayKutusu);
+        govde.scrollTop = govde.scrollHeight;
+    }
+
+    function onayDugmesi(yazi, renk, ikon, gonderilecekMetin) {
+        const dugme = document.createElement('button');
+        dugme.type = 'button';
+        dugme.className = `btn btn-sm ${renk}`;
+        const simge = document.createElement('i');
+        simge.className = `fas ${ikon} me-1`;
+        dugme.append(simge, yazi);
+        dugme.addEventListener('click', () => komutGonder(gonderilecekMetin));
+        return dugme;
+    }
+
+    // Yeni bir mesaj gönderilince eski düğmeler kalkar (aynı işlem iki kez onaylanmasın)
+    function onayDugmeleriniKaldir() {
+        onayKutusu?.remove();
+        onayKutusu = null;
+    }
+
+    // Çalan sesi durdurur. sesSirasi artırıldığı için yolda olan eski seslendirme isteği de geçersiz olur.
+    function sesiDurdur() {
+        sesSirasi++;
+        if (calanSes) {
+            calanSes.pause();
+            URL.revokeObjectURL(calanSes.src);
+            calanSes = null;
+        }
     }
 
     async function seslendir(metin) {
+        sesiDurdur();
+        const benimSiram = sesSirasi;
+
         durumYaz('Yanıt seslendiriliyor...');
         const yanit = await fetch('/api/ses/sese-cevir', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ metin })
         });
+        if (benimSiram !== sesSirasi) return;   // bu arada yeni bir ses istendi ya da ses durduruldu
         if (oturumDustuMu(yanit)) return;
         if (!yanit.ok) {
             balonEkle(`Sesli yanıt verilemedi: ${await hataMesaji(yanit)}`, 'asistan');
             return;
         }
 
-        const adres = URL.createObjectURL(await yanit.blob());
+        const ses = await yanit.blob();
+        if (benimSiram !== sesSirasi) return;
+
+        const adres = URL.createObjectURL(ses);
         const oynatici = new Audio(adres);
-        oynatici.onended = () => URL.revokeObjectURL(adres);
+        oynatici.onended = () => {
+            URL.revokeObjectURL(adres);
+            if (calanSes === oynatici) calanSes = null;
+        };
+        calanSes = oynatici;
         try {
             await oynatici.play();
         } catch {
             URL.revokeObjectURL(adres);   // tarayıcı otomatik oynatmayı engellediyse
+            if (calanSes === oynatici) calanSes = null;
         }
     }
 
@@ -180,12 +239,20 @@
         }
     });
 
-    form.addEventListener('submit', async e => {
+    form.addEventListener('submit', e => {
         e.preventDefault();
         const metin = kutu.value.trim();
         if (!metin || mesgul) return;
 
         kutu.value = '';
+        komutGonder(metin);
+    });
+
+    // Yazılı mesaj ve Onayla/Vazgeç düğmeleri bu fonksiyonla gönderilir
+    async function komutGonder(metin) {
+        if (mesgul || kaydedici) return;
+
+        sesiDurdur();   // kullanıcı yeni komut verdi: asistan sözünü kessin
         balonEkle(metin, 'kullanici');
         mesgulYap(true);
         try {
@@ -197,5 +264,5 @@
             durumYaz('');
             kutu.focus();
         }
-    });
+    }
 })();
