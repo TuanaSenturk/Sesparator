@@ -17,5 +17,4 @@ public class TransferGirdisi
 public class TransferYaniti
 {
     public string Mesaj { get; set; } = "";
-    public decimal YeniBakiye { get; set; }
 }

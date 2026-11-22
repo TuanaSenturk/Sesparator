@@ -51,14 +51,18 @@
                         @foreach (var i in Model.Islemler)
                         {
                             var gelen = i.IslemTuru == IslemTuru.GelenTransfer;
+                            // İptal edilen ve onay bekleyen işlemler bakiyeyi etkilemez: gri ve işaretsiz gösterilir
+                            var notr = i.Durum is IslemDurumu.IptalEdildi or IslemDurumu.Beklemede;
+                            var renk = notr ? "text-muted" : gelen ? "text-success" : "text-danger";
+                            var isaret = notr ? "" : gelen ? "+" : "-";
                             <tr>
                                 <td class="ps-3 text-nowrap">@i.Tarih.ToString("dd.MM.yyyy HH:mm")</td>
                                 <td>@i.Aciklama</td>
                                 <td>@Bicim.IslemTuruAdi(i.IslemTuru)</td>
                                 <td>@Bicim.KanalAdi(i.Kanal)</td>
                                 <td>@Bicim.DurumAdi(i.Durum)</td>
-                                <td class="text-end pe-3 fw-semibold text-nowrap @(gelen ? "text-success" : "text-danger")">
-                                    @(gelen ? "+" : "-")@Bicim.Para(i.Tutar, Model.ParaBirimi)
+                                <td class="text-end pe-3 fw-semibold text-nowrap @renk">
+                                    @isaret@Bicim.Para(i.Tutar, Model.ParaBirimi)
                                 </td>
                             </tr>
                         }

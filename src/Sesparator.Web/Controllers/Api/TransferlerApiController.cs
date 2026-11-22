@@ -39,7 +39,11 @@ public class TransferlerApiController : ControllerBase
         if (!kontrol.Basarili)
             return BadRequest(new { mesaj = kontrol.Mesaj });
 
-        var yeniBakiye = await _banka.TransferYapAsync(kontrol.Transfer!, IslemKanali.Web, girdi.Aciklama);
-        return Ok(new TransferYaniti { Mesaj = "Para gönderildi.", YeniBakiye = yeniBakiye });
+        var islemId = await _banka.FormTransferKaydetAsync(kontrol.Transfer!, girdi.Aciklama);
+        var sonuc = await _banka.TransferGerceklestirAsync(KullaniciId, islemId);
+        if (!sonuc.Basarili)
+            return BadRequest(new { mesaj = sonuc.Mesaj });
+
+        return Ok(new TransferYaniti { Mesaj = sonuc.Mesaj });
     }
 }
