@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Sesparator.Web.Models;
 
 namespace Sesparator.Web.Data;
-
-public class UygulamaDbContext : IdentityDbContext<Kullanici>
+//Hangi tablolar var ve nasıl ilişkili oldukları burada tanımlanır. 
+public class UygulamaDbContext : IdentityDbContext<Kullanici> 
 {
     public UygulamaDbContext(DbContextOptions<UygulamaDbContext> options)
         : base(options)

@@ -10,11 +10,14 @@ using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// controllerın çalışması ve html döndürmesini sağlar.
 builder.Services.AddControllersWithViews();
 
+
+/* AddDbContext-> DbContexti servis olarak kaydeder. controller ya da servis yapıcısında 
+ UygulamaDbContext db istediğinde, ASP.NET Core nesneyi kendisi oluşturup verir; senin new yazman gerekmez.*/
 builder.Services.AddDbContext<UygulamaDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("VarsayilanBaglanti")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("VarsayilanBaglanti"))); // UygulamaDbContext istenirse, SQL Server ve şu bağlantı cümlesiyle oluştur
 
 builder.Services.AddIdentity<Kullanici, IdentityRole>(o =>
     {
@@ -22,25 +25,25 @@ builder.Services.AddIdentity<Kullanici, IdentityRole>(o =>
         o.User.RequireUniqueEmail = true;
         o.Lockout.MaxFailedAccessAttempts = 5;
     })
-    .AddEntityFrameworkStores<UygulamaDbContext>()
-    .AddDefaultTokenProviders();
+    .AddEntityFrameworkStores<UygulamaDbContext>() //kullanıcıları ve rolleri EF Core ile UygulamaDbContext üzerinden saklamasını söyler.
+    .AddDefaultTokenProviders();//güvenlik kodları üretme yeteneği->şifremi unuttum, e-posta doğrulama
 
 // Web: çerez (cookie) ile oturum
 builder.Services.ConfigureApplicationCookie(o =>
 {
-    o.LoginPath = "/Oturum/Giris";
-    o.LogoutPath = "/Oturum/Cikis";
-    o.AccessDeniedPath = "/Oturum/ErisimEngellendi";
-    o.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-    o.SlidingExpiration = true;
+    o.LoginPath = "/Oturum/Giris"; // kullanıcı giriş yapmamışsa yönlendirileceği sayfa
+    o.LogoutPath = "/Oturum/Cikis"; // kullanıcı çıkış yapınca yönlendirileceği sayfa
+    o.AccessDeniedPath = "/Oturum/ErisimEngellendi";// kullanıcı yetkisiz sayfaya girmeye çalışırsa yönlendirileceği sayfa
+    o.ExpireTimeSpan = TimeSpan.FromMinutes(30); 
+    o.SlidingExpiration = true; //kullanıcı işlem yaptıkça süre yenilenir. 30 dk boyunca işlem yapmazsa oturum kapanır.
 });
 
 // Mobil: JWT
-var jwtAyar = builder.Configuration.GetSection("Jwt");
+var jwtAyar = builder.Configuration.GetSection("Jwt"); //appsettings.jsondaki jwt ayarlarını alır. 
 var jwtAnahtar = jwtAyar["Anahtar"]
     ?? throw new InvalidOperationException("Jwt:Anahtar ayarlanmamış (Manage User Secrets).");
 
-builder.Services.AddAuthentication()   // varsayılan şema Identity çerezi olarak kalır
+builder.Services.AddAuthentication()   //Bu satır sunucuya, kullanıcıyı çerez dışında bir yolla da tanımayı öğretir: JWT token ile.
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, o =>
     {
         o.MapInboundClaims = false;
@@ -57,7 +60,9 @@ builder.Services.AddAuthentication()   // varsayılan şema Identity çerezi ola
         };
     });
 
-builder.Services.AddScoped<JwtServisi>();
+// Servisleri DI'a kaydet. controller ya da başka servisler constructorlarında bu servisleri isterse, ASP.NET Core nesneyi kendisi oluşturup verir; senin new yazman gerekmez.
+
+builder.Services.AddScoped<JwtServisi>(); 
 
 // STT/TTS: Gemini (anahtar: Gemini:ApiAnahtari, Manage User Secrets)
 builder.Services.AddHttpClient<ISesServisi, GeminiSesServisi>(c => c.Timeout = TimeSpan.FromSeconds(30));
@@ -65,9 +70,8 @@ builder.Services.AddHttpClient<ISesServisi, GeminiSesServisi>(c => c.Timeout = T
 builder.Services.AddHttpClient<INiyetServisi, GeminiNiyetServisi>(c => c.Timeout = TimeSpan.FromSeconds(15));
 builder.Services.AddScoped<BankaIslemServisi>();
 builder.Services.AddScoped<AsistanServisi>();
-builder.Services.AddScoped<KayitliAliciDogrulayici>(); /* Dependency injection’a “controller bu servisi istediğinde her 
-istek için bir tane oluştur” der. Bu satır olmadan controller’ın constructor’ı servisi alamaz.
-*/
+builder.Services.AddScoped<KayitliAliciDogrulayici>(); 
+
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -114,14 +118,20 @@ else
     app.UseSwaggerUI(o => o.DocumentTitle = "Sesparator API");
 }
 
+// adres eşlenir
 app.UseRouting();
 
+// kullanıcı tanınır
 app.UseAuthentication();    
 
+//  kullanıcının yetkisi kontrol edilir
 app.UseAuthorization();
 
+// wwwroot altındaki statik dosyalar (css, js, resim) sunulur
 app.MapStaticAssets();
 
+/* Adresleri controller'lara bağlar. {controller=Home}/{action=Index}/{id?} şablonuna göre /Hesap/Detay/5 adresini HesapController.Detay(5)'e
+ gönderir. Parçalar yazılmazsa varsayılanlar devreye girer: / adresi HomeController.Index()'e gider, id ise isteğe bağlıdır.*/
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")

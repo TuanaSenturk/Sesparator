@@ -84,4 +84,24 @@ public class BankaIslemServisi
             Tutar = tutar.Value
         });
     }
+    public async Task<decimal> TransferYapAsync(BekleyenTransfer t, IslemKanali kanal, string? aciklama)
+    {
+        var hesap = await _db.Hesaplar.FirstAsync(h => h.Id == t.HesapId);
+        hesap.Bakiye -= t.Tutar;
+
+        _db.Islemler.Add(new Islem
+        {
+            HesapId = hesap.Id,
+            IslemTuru = IslemTuru.GidenTransfer,
+            Tutar = t.Tutar,
+            AliciIban = t.AliciIban,
+            Aciklama = aciklama,
+            Tarih = DateTime.Now,
+            Kanal = kanal,
+            Durum = IslemDurumu.Tamamlandi
+        });
+
+        await _db.SaveChangesAsync(); // bakiye düşümü ve işlem kaydı tek seferde
+        return hesap.Bakiye;
+    }   
 }
