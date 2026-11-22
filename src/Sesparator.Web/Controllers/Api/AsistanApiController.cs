@@ -32,17 +32,20 @@ public class AsistanApiController : ControllerBase
     public async Task<ActionResult<AsistanYaniti>> Mesaj(AsistanIstegi istek)
     {
         var kullaniciId = _kullaniciYoneticisi.GetUserId(User)!;
+        var metin = istek.Metin.Trim();
 
         try
         {
-            return await _asistan.MesajIsleAsync(kullaniciId, istek.Metin.Trim());
+            return await _asistan.MesajIsleAsync(kullaniciId, metin);
         }
         catch (KotaTukendiException ex)
         {
+            await _asistan.HataLogYazAsync(kullaniciId, metin, ex.Message);
             return StatusCode(StatusCodes.Status429TooManyRequests, new { mesaj = ex.Message });
         }
         catch (HttpRequestException)
         {
+            await _asistan.HataLogYazAsync(kullaniciId, metin, AsistanHatasi);
             return StatusCode(StatusCodes.Status502BadGateway, new { mesaj = AsistanHatasi });
         }
     }

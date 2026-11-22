@@ -84,4 +84,138 @@ public class BankaIslemServisi
             Tutar = tutar.Value
         });
     }
+
+    // ---------------- Onay / iptal akışı ----------------
+
+    // Onay bekleyen sesli transfer bu süreden eskiyse "evet" ile onaylanamaz
+    private static readonly TimeSpan OnayBeklemeSuresi = TimeSpan.FromMinutes(5);
+
+    private IQueryable<Islem> BekleyenSesliIslemler(string kullaniciId) =>
+        _db.Islemler.Where(i => i.Hesap!.KullaniciId == kullaniciId
+                             && i.IslemTuru == IslemTuru.GidenTransfer
+                             && i.Kanal == IslemKanali.Ses
+                             && i.Durum == IslemDurumu.Beklemede);
+
+    // Kullanıcının son 5 dakika içindeki, onay bekleyen sesli transferi
+    public Task<Islem?> BekleyenSesliIslemAsync(string kullaniciId)
+    {
+        var sinir = DateTime.Now - OnayBeklemeSuresi;
+        return BekleyenSesliIslemler(kullaniciId).AsNoTracking()
+            .Where(i => i.Tarih >= sinir)
+            .OrderByDescending(i => i.Tarih)
+            .FirstOrDefaultAsync();
+    }
+
+    // Kontrolden geçen transferi "Beklemede" olarak kaydeder. Aynı anda en fazla bir bekleyen
+    // sesli işlem olsun diye kullanıcının eski bekleyen işlemleri iptal edilir.
+    public async Task<int> BekleyenTransferKaydetAsync(string kullaniciId, BekleyenTransfer t)
+    {
+        var eskiler = await BekleyenSesliIslemler(kullaniciId).ToListAsync();
+        foreach (var eski in eskiler)
+            eski.Durum = IslemDurumu.IptalEdildi;
+
+        var islem = new Islem
+        {
+            HesapId = t.HesapId,
+            IslemTuru = IslemTuru.GidenTransfer,
+            Tutar = t.Tutar,
+            AliciIban = t.AliciIban,
+            Aciklama = $"{t.AliciAdSoyad} (sesli)",
+            Tarih = DateTime.Now,
+            Kanal = IslemKanali.Ses,
+            Durum = IslemDurumu.Beklemede
+        };
+        _db.Islemler.Add(islem);
+        await _db.SaveChangesAsync();
+        return islem.Id;
+    }
+
+    public async Task<bool> BekleyenIslemIptalEtAsync(string kullaniciId, int islemId)
+    {
+        var islem = await _db.Islemler.FirstOrDefaultAsync(i =>
+            i.Id == islemId && i.Hesap!.KullaniciId == kullaniciId && i.Durum == IslemDurumu.Beklemede);
+        if (islem is null)
+            return false;
+
+        islem.Durum = IslemDurumu.IptalEdildi;
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    // Onaylanan transferi gerçekleştirir. Sesli onay akışı ve mobil para gönderme formu ortak kullanır.
+    public async Task<TransferSonucu> TransferGerceklestirAsync(string kullaniciId, int islemId)
+    {
+        // Takipli sorgu: hesap ve işlemde yapılan değişiklikler SaveChanges ile kaydedilecek
+        var islem = await _db.Islemler.Include(i => i.Hesap)
+            .FirstOrDefaultAsync(i => i.Id == islemId && i.Hesap!.KullaniciId == kullaniciId);
+        if (islem is null)
+            return new TransferSonucu { Mesaj = "Onaylanacak işlem bulunamadı." };
+
+        // Aynı işlem iki kez onaylanamaz
+        if (islem.Durum != IslemDurumu.Beklemede)
+            return new TransferSonucu { Mesaj = "Bu işlem artık onay beklemiyor." };
+
+        var hesap = islem.Hesap!;
+
+        // Onay gelene kadar bakiye ya da günlük toplam değişmiş olabilir: tekrar kontrol et
+        string? hata = null;
+        if (hesap.Bakiye < islem.Tutar)
+        {
+            hata = $"Bakiyeniz yetersiz. Vadesiz hesabınızda {Bicim.Para(hesap.Bakiye, hesap.ParaBirimi)} var.";
+        }
+        else if (islem.Kanal == IslemKanali.Ses)
+        {
+            var bugunku = await BugunkuSesliTransferAsync(hesap.Id);
+            if (bugunku + islem.Tutar > _gunlukSesliLimit)
+                hata = $"Günlük sesli işlem limitiniz {Bicim.Para(_gunlukSesliLimit)}. " +
+                       $"Bugün en fazla {Bicim.Para(_gunlukSesliLimit - bugunku)} daha gönderebilirsiniz.";
+        }
+
+        if (hata is not null)
+        {
+            islem.Durum = IslemDurumu.Basarisiz;
+            await _db.SaveChangesAsync();
+            return new TransferSonucu { Mesaj = hata };
+        }
+
+        hesap.Bakiye -= islem.Tutar;
+        islem.Durum = IslemDurumu.Tamamlandi;
+        islem.Tarih = DateTime.Now;
+
+        // Alıcının IBAN'ı sistemdeki bir TL hesabına aitse para o hesaba da eklenir
+        var aliciIban = IbanYardimcisi.Normallestir(islem.AliciIban);
+        var aliciHesap = aliciIban.Length == 0
+            ? null
+            : await _db.Hesaplar.FirstOrDefaultAsync(h => h.Iban == aliciIban && h.ParaBirimi == "TRY" && h.Id != hesap.Id);
+        if (aliciHesap is not null)
+        {
+            var gonderen = await _db.Users.AsNoTracking()
+                .Where(u => u.Id == kullaniciId)
+                .Select(u => u.Ad + " " + u.Soyad)
+                .FirstOrDefaultAsync();
+
+            aliciHesap.Bakiye += islem.Tutar;
+            _db.Islemler.Add(new Islem
+            {
+                HesapId = aliciHesap.Id,
+                IslemTuru = IslemTuru.GelenTransfer,
+                Tutar = islem.Tutar,
+                AliciIban = null,
+                Aciklama = $"{gonderen} (gelen transfer)",
+                Tarih = islem.Tarih,
+                Kanal = islem.Kanal,
+                Durum = IslemDurumu.Tamamlandi
+            });
+        }
+
+        // Tek SaveChanges: gönderen, alıcı ve işlem kayıtları ya birlikte kaydedilir ya hiçbiri
+        await _db.SaveChangesAsync();
+
+        return new TransferSonucu
+        {
+            Basarili = true,
+            Mesaj = $"Transfer tamamlandı. {Bicim.Para(islem.Tutar)} gönderildi. " +
+                    $"Vadesiz hesabınızın yeni bakiyesi {Bicim.Para(hesap.Bakiye, hesap.ParaBirimi)}."
+        };
+    }
 }
