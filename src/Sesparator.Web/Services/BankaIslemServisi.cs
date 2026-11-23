@@ -85,6 +85,7 @@ public class BankaIslemServisi
         });
     }
 
+
     // ---------------- Onay / iptal akışı ----------------
 
     // Onay bekleyen sesli transfer bu süreden eskiyse "evet" ile onaylanamaz
@@ -217,5 +218,24 @@ public class BankaIslemServisi
             Mesaj = $"Transfer tamamlandı. {Bicim.Para(islem.Tutar)} gönderildi. " +
                     $"Vadesiz hesabınızın yeni bakiyesi {Bicim.Para(hesap.Bakiye, hesap.ParaBirimi)}."
         };
+    }
+    public async Task<int> FormTransferKaydetAsync(BekleyenTransfer t, string? aciklama)
+    {
+        var islem = new Islem
+        {
+            HesapId = t.HesapId,
+            IslemTuru = IslemTuru.GidenTransfer,
+            Tutar = t.Tutar,
+            AliciIban = t.AliciIban,
+            Aciklama = string.IsNullOrWhiteSpace(aciklama)
+                ? t.AliciAdSoyad
+                : $"{t.AliciAdSoyad} – {aciklama.Trim()}",
+            Tarih = DateTime.Now,
+            Kanal = IslemKanali.Web,          // sesli değil → sesli limite sayılmaz
+            Durum = IslemDurumu.Beklemede     // TransferGerceklestirAsync bunu tamamlayacak
+        };
+        _db.Islemler.Add(islem);
+        await _db.SaveChangesAsync();
+        return islem.Id;
     }
 }

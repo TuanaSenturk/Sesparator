@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Sesparator.Web.Models;
 using Sesparator.Web.Services;
+using Sesparator.Web.Models.Api;
 
 namespace Sesparator.Web.Controllers.Api;
 

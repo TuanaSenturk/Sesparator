@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Sesparator.Web.Models;
+namespace Sesparator.Web.Models.Api;
 
 public class GirisIstegi
 {
