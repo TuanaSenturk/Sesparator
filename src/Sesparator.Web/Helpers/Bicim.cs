@@ -45,4 +45,15 @@ public static class Bicim
         IslemKanali.Ses => "Sesli asistan",
         _ => kanal.ToString()
     };
+
+    // İptal edilen ve onay bekleyen işlemler bakiyeyi etkilemez: gri ve işaretsiz gösterilir
+    private static bool NotrMu(IslemDurumu durum) =>
+        durum is IslemDurumu.IptalEdildi or IslemDurumu.Beklemede;
+
+    // Gelen yeşil, giden kırmızı, nötr gri (Bootstrap sınıfı)
+    public static string TutarRengi(IslemTuru tur, IslemDurumu durum) =>
+        NotrMu(durum) ? "text-muted" : tur == IslemTuru.GelenTransfer ? "text-success" : "text-danger";
+
+    public static string TutarIsareti(IslemTuru tur, IslemDurumu durum) =>
+        NotrMu(durum) ? "" : tur == IslemTuru.GelenTransfer ? "+" : "-";
 }

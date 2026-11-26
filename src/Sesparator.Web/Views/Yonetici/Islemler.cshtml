@@ -1,0 +1,94 @@
+@model Sesparator.Web.Models.Yonetici.IslemIzlemeModeli
+@{
+    ViewData["Title"] = "İşlem İzleme";
+    var f = Model.Filtre;
+}
+
+<h1 class="mb-4">İşlem İzleme</h1>
+
+@* GET formu: filtreli sayfanın adresi paylaşılabilir. Yeni filtrede 1. sayfadan başlanır. *@
+<form method="get" class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-sm-6 col-lg-2">
+                <label class="form-label small" for="BaslangicTarihi">Başlangıç</label>
+                <input type="date" class="form-control" id="BaslangicTarihi" name="BaslangicTarihi"
+                       value="@f.BaslangicTarihi?.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-sm-6 col-lg-2">
+                <label class="form-label small" for="BitisTarihi">Bitiş</label>
+                <input type="date" class="form-control" id="BitisTarihi" name="BitisTarihi"
+                       value="@f.BitisTarihi?.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-sm-4 col-lg-2">
+                <label class="form-label small" for="Kanal">Kanal</label>
+                <select class="form-select" id="Kanal" name="Kanal">
+                    <option value="">Tümü</option>
+                    @foreach (var k in Enum.GetValues<IslemKanali>())
+                    {
+                        <option value="@k" selected="@(f.Kanal == k)">@Bicim.KanalAdi(k)</option>
+                    }
+                </select>
+            </div>
+            <div class="col-sm-4 col-lg-2">
+                <label class="form-label small" for="Durum">Durum</label>
+                <select class="form-select" id="Durum" name="Durum">
+                    <option value="">Tümü</option>
+                    @foreach (var d in Enum.GetValues<IslemDurumu>())
+                    {
+                        <option value="@d" selected="@(f.Durum == d)">@Bicim.DurumAdi(d)</option>
+                    }
+                </select>
+            </div>
+            <div class="col-sm-4 col-lg-2">
+                <label class="form-label small" for="Tur">İşlem türü</label>
+                <select class="form-select" id="Tur" name="Tur">
+                    <option value="">Tümü</option>
+                    @foreach (var t in Enum.GetValues<IslemTuru>())
+                    {
+                        <option value="@t" selected="@(f.Tur == t)">@Bicim.IslemTuruAdi(t)</option>
+                    }
+                </select>
+            </div>
+            <div class="col-lg-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1"><i class="fas fa-filter me-1"></i>Filtrele</button>
+                <a asp-action="Islemler" class="btn btn-outline-secondary" title="Filtreleri temizle"><i class="fas fa-times"></i></a>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-list me-1"></i> @Model.ToplamKayit işlem</span>
+        @if (Model.ToplamSayfa > 1)
+        {
+            <span class="small text-muted">Sayfa @f.Sayfa / @Model.ToplamSayfa</span>
+        }
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Islemler.Any())
+        {
+            <p class="text-muted p-3 mb-0">Bu filtreye uyan işlem yok.</p>
+        }
+        else
+        {
+            <partial name="_IslemTablosu" model="Model.Islemler" />
+        }
+    </div>
+</div>
+
+@if (Model.ToplamSayfa > 1)
+{
+    <nav class="mt-3" aria-label="Sayfalar">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(f.Sayfa == 1 ? "disabled" : "")">
+                <a class="page-link" asp-action="Islemler" asp-all-route-data="@f.RotaDegerleri(f.Sayfa - 1)">Önceki</a>
+            </li>
+            <li class="page-item active"><span class="page-link">@f.Sayfa</span></li>
+            <li class="page-item @(f.Sayfa == Model.ToplamSayfa ? "disabled" : "")">
+                <a class="page-link" asp-action="Islemler" asp-all-route-data="@f.RotaDegerleri(f.Sayfa + 1)">Sonraki</a>
+            </li>
+        </ul>
+    </nav>
+}

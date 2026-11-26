@@ -1,0 +1,63 @@
+@model Sesparator.Web.Models.Yonetici.KullaniciListesiModeli
+@{
+    ViewData["Title"] = "Kullanıcılar";
+}
+
+<h1 class="mb-4">Kullanıcılar</h1>
+
+<partial name="_Bildirimler" />
+
+<form method="get" class="d-flex gap-2 mb-3" style="max-width: 480px">
+    <input type="search" name="arama" value="@Model.Arama" class="form-control"
+           placeholder="Ad, soyad veya e-posta ara" aria-label="Ara" />
+    <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+    @if (!string.IsNullOrWhiteSpace(Model.Arama))
+    {
+        <a asp-action="Kullanicilar" class="btn btn-outline-secondary" title="Aramayı temizle"><i class="fas fa-times"></i></a>
+    }
+</form>
+
+@if (!Model.Kullanicilar.Any())
+{
+    <div class="alert alert-info">Kullanıcı bulunamadı.</div>
+}
+else
+{
+    <div class="card">
+        <div class="card-header"><i class="fas fa-users me-1"></i> @Model.Kullanicilar.Count müşteri</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Ad soyad</th>
+                            <th>E-posta</th>
+                            <th class="text-center">Hesap</th>
+                            <th class="text-end">Toplam bakiye</th>
+                            <th>Durum</th>
+                            <th class="text-end pe-3">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var k in Model.Kullanicilar)
+                        {
+                            <tr>
+                                <td class="ps-3 fw-semibold">@k.AdSoyad</td>
+                                <td>@k.Eposta</td>
+                                <td class="text-center">@k.HesapSayisi</td>
+                                <td class="text-end text-nowrap">@Bicim.Para(k.ToplamBakiye)</td>
+                                <td><partial name="_KilitRozeti" model="k.KilitBitisi" /></td>
+                                <td class="text-end pe-3 text-nowrap">
+                                    <a class="btn btn-sm btn-outline-primary" asp-action="KullaniciDetay" asp-route-id="@k.Id" title="Detay">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <partial name="_KilitDugmesi" model="k" />
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}

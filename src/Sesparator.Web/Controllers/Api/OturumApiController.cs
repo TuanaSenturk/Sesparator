@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Sesparator.Web.Helpers;
 using Sesparator.Web.Models;
 using Sesparator.Web.Services;
 using Sesparator.Web.Models.Api;
@@ -38,7 +39,12 @@ public class OturumApiController : ControllerBase
         // Çerez oluşturmaz, sadece şifreyi ve kilit durumunu kontrol eder
         var sonuc = await _girisYoneticisi.CheckPasswordSignInAsync(kullanici, istek.Sifre, lockoutOnFailure: true);
         if (sonuc.IsLockedOut)
-            return Unauthorized(new { mesaj = "Çok fazla hatalı deneme. 5 dakika sonra tekrar deneyin." });
+            return Unauthorized(new
+            {
+                mesaj = KilitYardimcisi.YoneticiKilidiMi(kullanici.LockoutEnd)
+                    ? KilitYardimcisi.YoneticiKilidiMesaji
+                    : "Çok fazla hatalı deneme. 5 dakika sonra tekrar deneyin."
+            });
         if (!sonuc.Succeeded)
             return Unauthorized(new { mesaj = "E-posta veya şifre hatalı." });
 

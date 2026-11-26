@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Sesparator.Web.Helpers;
 using Sesparator.Web.Models;
 
 namespace Sesparator.Web.Controllers;
@@ -44,14 +45,23 @@ public class OturumController : Controller
 
             var kullanici = await _kullaniciYoneticisi.FindByEmailAsync(model.Eposta);
             if (kullanici != null && await _kullaniciYoneticisi.IsInRoleAsync(kullanici, "Yonetici"))
-                return RedirectToAction("Index", "Home");   // yönetici paneli 5. haftada gelecek
+                return RedirectToAction("Index", "Yonetici");
 
             return RedirectToAction("Index", "Hesap");
         }
 
-        ModelState.AddModelError(string.Empty, sonuc.IsLockedOut
-            ? "Çok fazla hatalı deneme yapıldı. Lütfen 5 dakika sonra tekrar deneyin."
-            : "E-posta veya şifre hatalı.");
+        if (sonuc.IsLockedOut)
+        {
+            // Yönetici kilidi mi, hatalı denemelerden gelen 5 dakikalık kilit mi?
+            var kilitli = await _kullaniciYoneticisi.FindByEmailAsync(model.Eposta);
+            ModelState.AddModelError(string.Empty, KilitYardimcisi.YoneticiKilidiMi(kilitli?.LockoutEnd)
+                ? KilitYardimcisi.YoneticiKilidiMesaji
+                : "Çok fazla hatalı deneme yapıldı. Lütfen 5 dakika sonra tekrar deneyin.");
+        }
+        else
+        {
+            ModelState.AddModelError(string.Empty, "E-posta veya şifre hatalı.");
+        }
 
         return View(model);
     }

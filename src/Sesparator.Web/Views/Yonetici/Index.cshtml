@@ -1,0 +1,56 @@
+@model Sesparator.Web.Models.Yonetici.YoneticiOzetModeli
+@{
+    ViewData["Title"] = "Yönetici Paneli";
+}
+
+<h1 class="mb-4">Yönetici Paneli</h1>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="small text-white-50">Müşteri</div>
+                <div class="fs-3 fw-bold">@Model.MusteriSayisi</div>
+            </div>
+            <a class="card-footer text-white small d-flex justify-content-between text-decoration-none" asp-action="Kullanicilar">
+                Kullanıcılara git <i class="fas fa-angle-right"></i>
+            </a>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="small text-white-50">Bugünkü işlem</div>
+                <div class="fs-3 fw-bold">@Model.BugunkuIslemSayisi</div>
+            </div>
+            <a class="card-footer text-white small d-flex justify-content-between text-decoration-none"
+               asp-action="Islemler" asp-route-BaslangicTarihi="@DateTime.Today.ToString("yyyy-MM-dd")">
+                Bugünün işlemleri <i class="fas fa-angle-right"></i>
+            </a>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card bg-info text-white h-100">
+            <div class="card-body">
+                <div class="small text-white-50">Bugünkü sesli işlem</div>
+                <div class="fs-3 fw-bold">@Model.BugunkuSesliIslemSayisi</div>
+            </div>
+            <a class="card-footer text-white small d-flex justify-content-between text-decoration-none"
+               asp-action="Islemler" asp-route-BaslangicTarihi="@DateTime.Today.ToString("yyyy-MM-dd")" asp-route-Kanal="@IslemKanali.Ses">
+                Sesli işlemler <i class="fas fa-angle-right"></i>
+            </a>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card bg-warning text-dark h-100">
+            <div class="card-body">
+                <div class="small text-black-50">Onay bekleyen işlem</div>
+                <div class="fs-3 fw-bold">@Model.BekleyenIslemSayisi</div>
+            </div>
+            <a class="card-footer text-dark small d-flex justify-content-between text-decoration-none"
+               asp-action="Islemler" asp-route-Durum="@IslemDurumu.Beklemede">
+                Bekleyen işlemler <i class="fas fa-angle-right"></i>
+            </a>
+        </div>
+    </div>
+</div>

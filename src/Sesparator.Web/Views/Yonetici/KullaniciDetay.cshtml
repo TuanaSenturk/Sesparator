@@ -1,0 +1,70 @@
+@model Sesparator.Web.Models.Yonetici.KullaniciDetayModeli
+@{
+    ViewData["Title"] = Model.Kullanici.AdSoyad;
+    var k = Model.Kullanici;
+}
+
+<a asp-action="Kullanicilar" class="btn btn-link px-0 mb-2">
+    <i class="fas fa-arrow-left me-1"></i> Kullanıcılar
+</a>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <div>
+        <h1 class="mb-1">@k.AdSoyad <partial name="_KilitRozeti" model="k.KilitBitisi" /></h1>
+        <p class="text-muted mb-0">@k.Eposta</p>
+    </div>
+    <partial name="_KilitDugmesi" model="k" />
+</div>
+
+<partial name="_Bildirimler" />
+
+<div class="card mb-4">
+    <div class="card-header"><i class="fas fa-wallet me-1"></i> Hesaplar</div>
+    <div class="card-body p-0">
+        @if (!Model.Hesaplar.Any())
+        {
+            <p class="text-muted p-3 mb-0">Hesap yok.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Tür</th>
+                            <th>IBAN</th>
+                            <th class="text-end pe-3">Bakiye</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var h in Model.Hesaplar)
+                        {
+                            <tr>
+                                <td class="ps-3">@Bicim.HesapTuruAdi(h.HesapTuru)</td>
+                                <td class="font-monospace small">@Bicim.Iban(h.Iban)</td>
+                                <td class="text-end pe-3 fw-semibold text-nowrap">@Bicim.Para(h.Bakiye, h.ParaBirimi)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-list me-1"></i> Son işlemler</span>
+        <span class="small text-muted">en fazla @Model.SonIslemler.Count kayıt</span>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.SonIslemler.Any())
+        {
+            <p class="text-muted p-3 mb-0">İşlem yok.</p>
+        }
+        else
+        {
+            <partial name="_IslemTablosu" model="Model.SonIslemler" />
+        }
+    </div>
+</div>
