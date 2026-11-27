@@ -17,6 +17,10 @@
 
     @{
         var aktif = ViewContext.RouteData.Values["controller"]?.ToString();
+        var aktifAction = ViewContext.RouteData.Values["action"]?.ToString();
+        // Yönetim sayfaları aynı controller'da: aktiflik action adına da bakılarak belirlenir
+        string YonetimAktif(params string[] actionlar) =>
+            aktif == "Yonetici" && actionlar.Contains(aktifAction) ? "active" : "";
     }
 
     <!-- Üst bar -->
@@ -83,6 +87,23 @@
                             <a class="nav-link @(aktif == "Sohbet" ? "active" : "")" asp-controller="Sohbet" asp-action="Index">
                                 <div class="sb-nav-link-icon"><i class="fas fa-comments"></i></div>
                                 Sesli Asistan
+                            </a>
+                        }
+
+                        @if (User.IsInRole("Yonetici"))
+                        {
+                            <div class="sb-sidenav-menu-heading">Yönetim</div>
+                            <a class="nav-link @YonetimAktif("Index")" asp-controller="Yonetici" asp-action="Index">
+                                <div class="sb-nav-link-icon"><i class="fas fa-gauge"></i></div>
+                                Panel
+                            </a>
+                            <a class="nav-link @YonetimAktif("Kullanicilar", "KullaniciDetay")" asp-controller="Yonetici" asp-action="Kullanicilar">
+                                <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                                Kullanıcılar
+                            </a>
+                            <a class="nav-link @YonetimAktif("Islemler")" asp-controller="Yonetici" asp-action="Islemler">
+                                <div class="sb-nav-link-icon"><i class="fas fa-list-check"></i></div>
+                                İşlemler
                             </a>
                         }
                     </div>

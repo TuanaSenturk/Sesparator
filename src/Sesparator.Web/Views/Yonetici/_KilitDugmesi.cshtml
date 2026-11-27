@@ -1,0 +1,21 @@
+@model Sesparator.Web.Models.Yonetici.KullaniciSatiri
+@* Kilitli değilse "Kilitle", kilitliyse "Kilidi Aç". POST + CSRF; işlemden sonra aynı sayfaya dönülür. *@
+@{
+    var kilitli = Model.KilitBitisi > DateTimeOffset.UtcNow;
+    var donus = Context.Request.Path + Context.Request.QueryString;
+}
+<form asp-action="@(kilitli ? "KilidiAc" : "Kilitle")" asp-route-id="@Model.Id" method="post" class="d-inline">
+    <input type="hidden" name="donusAdresi" value="@donus" />
+    @if (kilitli)
+    {
+        <button type="submit" class="btn btn-sm btn-outline-success" title="Kilidi aç">
+            <i class="fas fa-lock-open me-1"></i>Kilidi Aç
+        </button>
+    }
+    else
+    {
+        <button type="submit" class="btn btn-sm btn-outline-danger" title="Kilitle">
+            <i class="fas fa-lock me-1"></i>Kilitle
+        </button>
+    }
+</form>

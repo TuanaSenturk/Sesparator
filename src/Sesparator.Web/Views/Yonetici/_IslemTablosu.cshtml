@@ -1,0 +1,37 @@
+@model List<Sesparator.Web.Models.Yonetici.IslemSatiri>
+@* KullaniciDetay ve Islemler sayfalarındaki ortak işlem tablosu *@
+<div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th class="ps-3">Tarih</th>
+                <th>Müşteri</th>
+                <th>Hesap</th>
+                <th>Açıklama</th>
+                <th>Tür</th>
+                <th>Kanal</th>
+                <th>Durum</th>
+                <th class="text-end pe-3">Tutar</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var i in Model)
+            {
+                <tr>
+                    <td class="ps-3 text-nowrap">@i.Tarih.ToString("dd.MM.yyyy HH:mm")</td>
+                    <td class="text-nowrap">
+                        <a asp-action="KullaniciDetay" asp-route-id="@i.MusteriId">@i.MusteriAdSoyad</a>
+                    </td>
+                    <td class="font-monospace small text-nowrap">@Bicim.Iban(i.HesapIban)</td>
+                    <td>@i.Aciklama</td>
+                    <td>@Bicim.IslemTuruAdi(i.IslemTuru)</td>
+                    <td>@Bicim.KanalAdi(i.Kanal)</td>
+                    <td>@Bicim.DurumAdi(i.Durum)</td>
+                    <td class="text-end pe-3 fw-semibold text-nowrap @Bicim.TutarRengi(i.IslemTuru, i.Durum)">
+                        @Bicim.TutarIsareti(i.IslemTuru, i.Durum)@Bicim.Para(i.Tutar, i.ParaBirimi)
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

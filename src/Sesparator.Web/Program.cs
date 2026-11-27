@@ -38,6 +38,9 @@ builder.Services.ConfigureApplicationCookie(o =>
     o.SlidingExpiration = true; //kullanıcı işlem yaptıkça süre yenilenir. 30 dk boyunca işlem yapmazsa oturum kapanır.
 });
 
+// Yönetici bir kullanıcıyı kilitleyince güvenlik damgası değişir; açık web oturumu en geç 1 dakikada düşer (varsayılan 30 dk)
+builder.Services.Configure<SecurityStampValidatorOptions>(o => o.ValidationInterval = TimeSpan.FromMinutes(1));
+
 // Mobil: JWT
 var jwtAyar = builder.Configuration.GetSection("Jwt"); //appsettings.jsondaki jwt ayarlarını alır. 
 var jwtAnahtar = jwtAyar["Anahtar"]
