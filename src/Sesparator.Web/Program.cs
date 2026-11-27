@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Sesparator.Web.Data;
+using Sesparator.Web.Helpers;
+using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -60,6 +62,19 @@ builder.Services.AddAuthentication()   //Bu satır sunucuya, kullanıcıyı çer
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtAnahtar)),
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromMinutes(1)
+        };
+        // Yönetici kilitlediyse token'ın süresi dolmasını beklemeden reddet (web'deki 1 dk kuralının mobil karşılığı).
+        // Sadece yönetici kilidine bakılır: hatalı şifre denemelerinden gelen 5 dk kilit açık mobil oturumu düşürmez.
+        o.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async ctx =>
+            {
+                var yonetici = ctx.HttpContext.RequestServices.GetRequiredService<UserManager<Kullanici>>();
+                var id = ctx.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+                var kullanici = id is null ? null : await yonetici.FindByIdAsync(id);
+                if (kullanici is null || KilitYardimcisi.YoneticiKilidiMi(kullanici.LockoutEnd))
+                    ctx.Fail("Hesap kilitli.");
+            }
         };
     });
 
